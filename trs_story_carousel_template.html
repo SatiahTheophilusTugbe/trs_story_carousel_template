@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <!--
-TRS STORY CAROUSEL TEMPLATE v1
-New repo, new name -- TRS - WC2026 - Story Carousel workflow.
+TRS STORY CAROUSEL TEMPLATE v2 -- "THE DOSSIER"
+Repo: trs_story_carousel_template. Render loop cache-busts with Date.now() -- no ?v= bookkeeping.
 
-v1 additions on top of the prior master template:
-- Slide 1: LEAGUE_BADGE added top-right, stacked above the existing team flag/code pill
-           (pill itself untouched -- same position/size on S1/S8/S9 as before)
-- Slide 1: HERO_PHOTO_HTML added lower-right -- duotone (grayscale + team-color blend),
-           faded at top/left edges so it reads as texture bleeding into the frame,
-           not a hard-edged photo competing with HERO_STAT. Degrades gracefully to an
-           empty frame if no photo is available (HERO_PHOTO_HTML resolves to '').
-- Slide 10: PLATFORM_ROW added below SO_LINE, matching Score Card's footer treatment.
-
-All other slides (2-9) unchanged from the prior master template.
+v2 changes on top of v1:
+- GLOBAL CHROME unified with Score Card / Match Flash family:
+    top-left: THIRD RAIL SPORTS | top-center: CONTEXT_LINE (subject team + matchday + date, computed)
+    top-right: LEAGUE_BADGE | bottom-center: SPORT. DECODED. (slides 1-9 only)
+    bottom-left: chapter label | bottom-right: slide counter | left edge: chapter progress rail
+- CHAPTER RAIL: the Dossier's signature element. 6px left-edge rail, 10 segments,
+  lit progress per slide. Hardcoded per slide -- zero injection cost.
+- Team pill REMOVED from all slides -- subject team now lives in CONTEXT_LINE on every slide.
+- S3 rebuilt: ZONE BREAKDOWN -> THE DUEL. Tale-of-the-tape: two large duotone player
+  portraits (each team's top performer, resolved deterministically from Goals & Bookings),
+  4 computed head-to-head stat rows with center-out split bars. Degrades gracefully:
+  DUEL_x_PHOTO_HTML resolves to '' when no photo -- frame renders as dark panel.
+- S8 rebuilt: LEADERBOARD -> THE BOOT. Golden Boot race computed from Goals & Bookings.
+  5 rows with circular duotone player photo chips. BOOTn_PHOTO_HTML degrades to ''.
+- S10: platform handles retained (PLATFORM_ROW); no SPORT. DECODED. on slide 10.
+- Slides 2/4/5/6/7/9 structurally unchanged; chrome + rail applied.
+DOCTRINE: every numeric/score/width/color/time placeholder in this file is computed by code.
+Claude supplies editorial copy only.
 -->
 <head>
 <meta charset="UTF-8">
@@ -36,15 +44,27 @@ body{margin:0;padding:0;background:#0a0a0a}
 .slide{position:absolute;inset:0;display:none;flex-direction:column}
 .slide.active{display:flex}
 
-/* GLOBAL CHROME */
-.bug{position:absolute;top:44px;left:48px;z-index:20;font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:10px;color:#AAFF00}
-.pill{position:absolute;top:44px;right:48px;z-index:20;background:rgba(170,255,0,0.08);border:2px solid rgba(170,255,0,0.3);padding:10px 24px;border-radius:6px;font-size:22px;letter-spacing:6px;color:#AAFF00;font-weight:600;text-transform:uppercase;font-family:'Inter',sans-serif}
+/* ============ GLOBAL CHROME v2 ============ */
+.chr-tl{position:absolute;top:44px;left:44px;z-index:20;font-family:'Bebas Neue',sans-serif;font-size:27px;letter-spacing:7px;color:#AAFF00;line-height:1}
+.chr-tc{position:absolute;top:50px;left:50%;transform:translateX(-50%);z-index:20;font-size:17px;letter-spacing:4px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;white-space:nowrap;font-family:'Inter',sans-serif}
+.chr-tr{position:absolute;top:50px;right:44px;z-index:20;font-size:17px;letter-spacing:4px;color:rgba(170,255,0,0.55);text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif}
+.chr-bc{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);z-index:20;font-size:16px;letter-spacing:8px;color:rgba(170,255,0,0.35);text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif}
+.ch-label{position:absolute;bottom:42px;left:44px;z-index:20;font-size:16px;letter-spacing:4px;color:rgba(170,255,0,0.65);text-transform:uppercase;font-weight:700;font-family:'Inter',sans-serif}
 .sc{position:absolute;bottom:36px;right:44px;font-family:'Bebas Neue',sans-serif;font-size:40px;color:rgba(170,255,0,0.18);letter-spacing:4px;z-index:20;line-height:1}
 
-/* NEW v1: LEAGUE BADGE -- Slide 1 only, sits above the existing team pill without moving it */
-.league-badge{position:absolute;top:14px;right:48px;z-index:21;font-family:'Inter',sans-serif;font-size:15px;letter-spacing:4px;color:rgba(170,255,0,0.5);text-transform:uppercase;font-weight:600}
+/* CHAPTER RAIL -- signature element */
+.rail{position:absolute;left:0;top:0;bottom:0;width:6px;display:flex;flex-direction:column;gap:5px;z-index:30}
+.rs{flex:1;background:#191919}
+.rs.on{background:#AAFF00}
 
-/* NEW v1: HERO PHOTO -- duotone bleed, lower-right, Slide 1 only */
+/* ============ SHARED LAYOUT ============ */
+.inner{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;padding:130px 56px 118px;justify-content:center;overflow:hidden}
+.sec{font-size:24px;letter-spacing:8px;color:#AAFF00;text-transform:uppercase;margin-bottom:20px;font-weight:600;font-family:'Inter',sans-serif}
+.ttl{font-family:'Bebas Neue',sans-serif;font-size:108px;line-height:0.93;color:#fff;letter-spacing:1px;margin-bottom:28px}
+.bod{font-size:40px;color:#fff;line-height:1.5;font-weight:300;font-family:'Inter',sans-serif}
+.vbar{width:96px;height:8px;background:#AAFF00;margin:32px 0}
+
+/* HERO PHOTO -- duotone bleed, lower-right, Slide 1 */
 .hero-photo-frame{position:absolute;right:0;bottom:0;width:460px;height:660px;overflow:hidden;z-index:2}
 .hero-photo{width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(100%) contrast(1.15);opacity:0.6;display:block}
 .hero-photo-tint{position:absolute;inset:0;background:{{TEAM_COLOR}};mix-blend-mode:color;opacity:0.8}
@@ -53,16 +73,8 @@ body{margin:0;padding:0;background:#0a0a0a}
   linear-gradient(90deg,rgba(10,10,10,0.92) 0%,rgba(10,10,10,0) 42%)
 }
 
-/* NEW v1: PLATFORM ROW -- Slide 10 only, flows below SO_LINE */
+/* PLATFORM ROW -- Slide 10 */
 .platform-row{margin-top:40px;font-size:22px;letter-spacing:8px;color:rgba(170,255,0,0.35);text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif;text-align:center}
-
-/* SHARED LAYOUT */
-.inner{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;padding:44px 56px;justify-content:center;overflow:hidden}
-.inner.top{justify-content:flex-start;padding-top:120px}
-.sec{font-size:24px;letter-spacing:8px;color:#AAFF00;text-transform:uppercase;margin-bottom:20px;font-weight:600;font-family:'Inter',sans-serif}
-.ttl{font-family:'Bebas Neue',sans-serif;font-size:108px;line-height:0.93;color:#fff;letter-spacing:1px;margin-bottom:28px}
-.bod{font-size:40px;color:#fff;line-height:1.5;font-weight:300;font-family:'Inter',sans-serif}
-.vbar{width:96px;height:8px;background:#AAFF00;margin:32px 0}
 
 /* STAT TRIO */
 .trio{display:flex;margin-top:36px;padding-top:36px;border-top:1px solid #222}
@@ -71,19 +83,37 @@ body{margin:0;padding:0;background:#0a0a0a}
 .tn{font-family:'Bebas Neue',sans-serif;font-size:96px;color:#AAFF00;line-height:1}
 .tl{font-size:20px;color:#fff;letter-spacing:4px;text-transform:uppercase;margin-top:8px;font-weight:500;font-family:'Inter',sans-serif}
 
-/* BAR CHART */
-.br{margin-bottom:18px}
-.bh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
-.bz{font-size:22px;color:#fff;letter-spacing:4px;text-transform:uppercase;font-weight:500;font-family:'Inter',sans-serif}
-.bp{font-family:'Bebas Neue',sans-serif;font-size:56px;color:#fff;line-height:1}
-.bp.v{color:#AAFF00}
-.bt{width:100%;height:8px;background:#1c1c1c;border-radius:4px}
-.bf{height:8px;background:#2e2e2e;border-radius:4px}
-.bf.hi{background:#AAFF00}
-.bn{font-size:30px;color:#fff;line-height:1.5;padding-top:24px;border-top:1px solid #1c1c1c;font-weight:300;font-family:'Inter',sans-serif}
-.bn span{color:#AAFF00;font-weight:500}
+/* ============ S3: THE DUEL ============ */
+.duel-face{position:absolute;top:150px;width:400px;height:430px;overflow:hidden;z-index:3}
+.duel-face.home{left:70px}
+.duel-face.away{right:70px}
+.duel-face img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(100%) contrast(1.15);opacity:0.75;display:block}
+.duel-tint{position:absolute;inset:0;mix-blend-mode:color;opacity:0.75}
+.duel-tint.home{background:{{DUEL_HOME_COLOR}}}
+.duel-tint.away{background:{{DUEL_AWAY_COLOR}}}
+.duel-fade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,0.15) 0%,rgba(10,10,10,0) 30%,rgba(10,10,10,0.2) 68%,rgba(10,10,10,0.97) 100%)}
+.duel-name{position:absolute;bottom:14px;left:0;right:0;text-align:center;z-index:4}
+.duel-name .dn{font-family:'Bebas Neue',sans-serif;font-size:44px;color:#fff;letter-spacing:2px;line-height:1}
+.duel-name .dm{font-size:18px;letter-spacing:4px;color:#AAFF00;text-transform:uppercase;font-weight:600;margin-top:6px;font-family:'Inter',sans-serif}
+.duel-vs{position:absolute;top:300px;left:50%;transform:translateX(-50%);font-family:'Bebas Neue',sans-serif;font-size:110px;color:rgba(170,255,0,0.85);letter-spacing:2px;line-height:1;z-index:4}
+.duel-stats{position:absolute;left:56px;right:56px;top:630px;z-index:5}
+.dl-row{display:flex;align-items:center;padding:13px 0;border-bottom:1px solid #161616}
+.dl-row.last{border-bottom:none}
+.dl-val{font-family:'Bebas Neue',sans-serif;font-size:54px;color:rgba(255,255,255,0.55);width:130px;line-height:1}
+.dl-val.h{text-align:left}
+.dl-val.a{text-align:right}
+.dl-val.hi{color:#AAFF00}
+.dl-mid{flex:1;display:flex;align-items:center;gap:16px}
+.dl-track{flex:1;height:8px;background:#1a1a1a;border-radius:4px;position:relative;overflow:hidden}
+.dl-fill{position:absolute;top:0;bottom:0;background:#2e2e2e;border-radius:4px}
+.dl-fill.h{right:0}
+.dl-fill.a{left:0}
+.dl-fill.hi{background:#AAFF00}
+.dl-lab{width:220px;text-align:center;font-size:19px;color:#fff;letter-spacing:3px;text-transform:uppercase;font-weight:500;font-family:'Inter',sans-serif}
+.duel-note{position:absolute;left:56px;right:56px;bottom:104px;font-size:26px;color:#fff;font-weight:300;line-height:1.45;font-family:'Inter',sans-serif;padding-top:18px;border-top:1px solid #161616;z-index:5}
+.duel-note span{color:#AAFF00;font-weight:500}
 
-/* MATCH ROWS */
+/* MATCH ROWS (S4) */
 .mr{display:flex;align-items:center;padding:22px 0;border-bottom:1px solid #181818}
 .mr.last{border-bottom:none}
 .mt{font-family:'Bebas Neue',sans-serif;font-size:44px;color:#fff;flex:1;letter-spacing:1px}
@@ -94,22 +124,14 @@ body{margin:0;padding:0;background:#0a0a0a}
 .mres{font-size:22px;letter-spacing:4px;font-weight:700;margin-left:16px;font-family:'Inter',sans-serif}
 .win{color:#AAFF00}.loss{color:#8B1414}.draw{color:#888}
 
-/* SLIDE 4: form strip */
-.fstrip{display:flex;gap:12px;margin-top:28px;padding-top:24px;border-top:1px solid #1e1e1e;align-items:center}
-.fd{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0;font-family:'Inter',sans-serif;line-height:1}
-.fw{background:#AAFF00;color:#0a0a0a}
-.fl{background:#8B1414;color:#fff}
-.fd2{background:#333;color:#fff}
-.fn{margin-left:12px;font-size:28px;color:#ffffff !important;font-weight:300;line-height:1.4;font-family:'Inter',sans-serif;flex:1}
-
-/* QUOTE */
+/* QUOTE (S5) */
 .qt{font-size:42px;color:#fff;line-height:1.55;font-weight:300;font-style:italic;font-family:'Inter',sans-serif}
 .qt em{font-style:normal;color:#AAFF00;font-weight:600}
 .qa{font-size:22px;color:#fff;letter-spacing:6px;text-transform:uppercase;margin-top:36px;font-weight:500;font-family:'Inter',sans-serif}
 .qr{width:100%;height:1px;background:#1a1a1a;margin:32px 0}
 .qf{font-size:30px;color:#fff;font-weight:300;line-height:1.55;font-family:'Inter',sans-serif}
 
-/* FIXTURES */
+/* FIXTURES (S6) */
 .fr{display:flex;align-items:center;gap:24px;padding:22px 0;border-bottom:1px solid #141414}
 .fr.last{border-bottom:none}
 .ft{font-family:'Bebas Neue',sans-serif;font-size:40px;color:#AAFF00;width:110px;flex-shrink:0}
@@ -120,7 +142,7 @@ body{margin:0;padding:0;background:#0a0a0a}
 .flive{font-size:18px;letter-spacing:4px;background:#AAFF00;color:#0a0a0a;padding:8px 16px;border-radius:4px;font-weight:700;flex-shrink:0;font-family:'Inter',sans-serif}
 .ffoot{font-size:28px;color:#fff;font-weight:300;margin-top:20px;padding-top:24px;border-top:1px solid #141414;line-height:1.5;font-family:'Inter',sans-serif}
 
-/* SLIDE 7 VERDICT */
+/* VERDICT (S7) */
 .vh{font-family:'Bebas Neue',sans-serif;font-size:88px;line-height:0.9;color:#fff;letter-spacing:-1px}
 .vh-sub{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:1;color:#AAFF00;letter-spacing:0px;margin-top:8px}
 .vsub{font-size:22px;color:#fff;letter-spacing:6px;text-transform:uppercase;margin:18px 0 20px;font-weight:500;font-family:'Inter',sans-serif}
@@ -135,24 +157,28 @@ body{margin:0;padding:0;background:#0a0a0a}
 .px{color:#fff;line-height:1.45;font-weight:300;font-family:'Inter',sans-serif}
 .px strong{font-weight:600;color:#fff}
 
-/* LEADERBOARD */
-.lb-row{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid #181818}
-.lb-row.last{border-bottom:none}
-.lb-rank{font-family:'Bebas Neue',sans-serif;font-size:52px;color:#AAFF00;width:68px;flex-shrink:0}
-.lb-rank.hi{color:#fff}
-.lb-team{font-family:'Bebas Neue',sans-serif;font-size:40px;color:#fff;flex:1;letter-spacing:1px}
-.lb-team.hi{color:#AAFF00}
-.lb-bar-wrap{flex:1;margin:0 20px}
-.lb-bar-t{height:6px;background:#1c1c1c;border-radius:3px}
-.lb-bar-f{height:6px;background:#333;border-radius:3px}
-.lb-bar-f.hi{background:#AAFF00}
-.lb-val{font-family:'Bebas Neue',sans-serif;font-size:52px;color:#fff;width:110px;text-align:right;line-height:1}
-.lb-val.hi{color:#AAFF00}
-.lb-foot{font-size:26px;color:#fff;margin-top:24px;padding-top:20px;border-top:1px solid #1c1c1c;font-weight:300;line-height:1.45;font-family:'Inter',sans-serif}
+/* ============ S8: THE BOOT ============ */
+.boot-row{display:flex;align-items:center;padding:13px 0;border-bottom:1px solid #181818}
+.boot-row.last{border-bottom:none}
+.boot-rank{font-family:'Bebas Neue',sans-serif;font-size:52px;color:rgba(255,255,255,0.4);width:62px;flex-shrink:0;line-height:1}
+.boot-rank.hi{color:#AAFF00}
+.boot-chip{width:78px;height:78px;border-radius:50%;overflow:hidden;border:2px solid #242424;flex-shrink:0;margin-right:24px;background:#141414;position:relative}
+.boot-chip img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(100%) contrast(1.15);display:block}
+.boot-chip.hi{border-color:#AAFF00}
+.boot-name{font-family:'Bebas Neue',sans-serif;font-size:42px;color:#fff;flex:1;letter-spacing:1px;line-height:1}
+.boot-name.hi{color:#AAFF00}
+.boot-team{font-size:20px;letter-spacing:3px;color:rgba(255,255,255,0.45);width:90px;font-weight:600;font-family:'Inter',sans-serif;text-transform:uppercase}
+.boot-bar-wrap{flex:1;margin:0 20px;max-width:220px}
+.boot-bar-t{height:6px;background:#1c1c1c;border-radius:3px}
+.boot-bar-f{height:6px;background:#333;border-radius:3px}
+.boot-bar-f.hi{background:#AAFF00}
+.boot-val{font-family:'Bebas Neue',sans-serif;font-size:52px;color:#fff;width:80px;text-align:right;line-height:1}
+.boot-val.hi{color:#AAFF00}
+.boot-foot{font-size:26px;color:#fff;margin-top:22px;padding-top:20px;border-top:1px solid #1c1c1c;font-weight:300;line-height:1.45;font-family:'Inter',sans-serif}
 
-/* DECISIVE STAT */
+/* DECISIVE STAT (S9) */
 .ds-ghost{position:absolute;font-family:'Bebas Neue',sans-serif;font-size:500px;line-height:1;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-20px;pointer-events:none;padding:0 16px 16px 0}
-.ds-inner{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;justify-content:center;padding:120px 56px 56px;overflow:hidden}
+.ds-inner{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;justify-content:center;padding:130px 56px 118px;overflow:hidden}
 .ds-label{font-size:22px;letter-spacing:8px;color:#AAFF00;text-transform:uppercase;margin-bottom:36px;font-weight:600;font-family:'Inter',sans-serif}
 .ds-num{font-family:'Bebas Neue',sans-serif;font-size:300px;line-height:0.82;color:#AAFF00;letter-spacing:-12px}
 .ds-unit{font-family:'Bebas Neue',sans-serif;font-size:72px;color:#fff;display:block;margin-top:16px;letter-spacing:2px;line-height:1}
@@ -160,7 +186,7 @@ body{margin:0;padding:0;background:#0a0a0a}
 .ds-body{font-size:34px;color:#fff;line-height:1.6;font-weight:300;font-family:'Inter',sans-serif}
 .ds-body em{color:#AAFF00;font-style:normal;font-weight:600}
 
-/* SIGN-OFF */
+/* SIGN-OFF (S10) */
 .so-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .so-ghost{position:absolute;font-family:'Bebas Neue',sans-serif;font-size:820px;color:#AAFF00;opacity:0.05;pointer-events:none;letter-spacing:-40px;line-height:0.85;top:44%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;user-select:none;z-index:1}
 .so-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;text-align:center;width:100%}
@@ -182,7 +208,7 @@ body{margin:0;padding:0;background:#0a0a0a}
 <rect width="100%" height="100%" filter="url(#gf)" opacity="0.38"/>
 </svg>
 
-<!-- S1: HOOK -->
+<!-- S1: THE COVER -->
 <div class="slide {{S1_ACTIVE}}" id="s1">
 <div style="position:absolute;inset:0;background:{{TEAM_COLOR}}"></div>
 <div style="position:absolute;inset:0;background:{{TEAM_COLOR_MID}};clip-path:polygon(62% 0%,100% 0%,100% 100%,38% 100%)"></div>
@@ -193,31 +219,36 @@ body{margin:0;padding:0;background:#0a0a0a}
   <div class="hero-photo-tint"></div>
   <div class="hero-photo-fade"></div>
 </div>
-<div class="bug">SPORT. DECODED.</div>
-<div class="league-badge">{{LEAGUE_BADGE}}</div>
-<div class="pill">{{TEAM_FLAG}} {{TEAM_CODE}}</div>
-<div class="inner" style="justify-content:center;padding-top:44px;padding-bottom:44px">
+<div class="rail"><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
+<div class="chr-tl">THIRD RAIL SPORTS</div>
+<div class="chr-tc">{{CONTEXT_LINE}}</div>
+<div class="chr-tr">{{LEAGUE_BADGE}}</div>
+<div class="inner" style="justify-content:center">
   <div style="font-size:24px;letter-spacing:8px;color:#fff;text-transform:uppercase;margin-bottom:24px;font-weight:400;font-family:'Inter',sans-serif">{{EYEBROW}}</div>
   <div style="font-family:'Bebas Neue',sans-serif;font-size:280px;line-height:0.82;color:#AAFF00;letter-spacing:-8px">{{HERO_STAT}}<span style="font-family:'Bebas Neue',sans-serif;font-size:96px;color:#fff;letter-spacing:2px;display:block;margin-top:18px;line-height:1">{{HERO_UNIT}}</span></div>
   <div class="vbar"></div>
   <div class="bod">{{HOOK_BODY}}</div>
 </div>
+<div class="ch-label">01 · THE COVER</div>
+<div class="chr-bc">SPORT. DECODED.</div>
 <div class="sc">01 / 10</div>
 </div>
 
-<!-- S2: CONTEXT -->
+<!-- S2: THE CLAIM -->
 <div class="slide {{S2_ACTIVE}}" id="s2">
 <div style="position:absolute;top:0;left:0;right:0;height:50%;background:{{TEAM_COLOR}}"></div>
 <div style="position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(0,0,0,0.0) 0%,rgba(0,0,0,0.65) 100%)"></div>
 <div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:#0a0a0a"></div>
 <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:420px;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-16px;pointer-events:none;padding:0 16px 16px 0;line-height:1">{{TEAM_CODE}}</div>
-<div class="bug">SPORT. DECODED.</div>
-<div class="pill">{{TEAM_FLAG}} {{TEAM_CODE}}</div>
+<div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
+<div class="chr-tl">THIRD RAIL SPORTS</div>
+<div class="chr-tc">{{CONTEXT_LINE}}</div>
+<div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div style="position:absolute;top:0;left:0;right:0;height:50%;display:flex;flex-direction:column;justify-content:flex-end;padding:0 56px 28px 56px;z-index:5">
   <div class="sec">{{PROBLEM_LABEL}}</div>
   <div class="ttl" style="font-size:100px;margin-bottom:0;line-height:0.92">{{PROBLEM_TITLE_L1}}<br>{{PROBLEM_TITLE_L2}}<br>{{PROBLEM_TITLE_L3}}</div>
 </div>
-<div style="position:absolute;bottom:0;left:0;right:0;height:50%;display:flex;flex-direction:column;justify-content:space-between;padding:28px 56px 44px 56px;z-index:5">
+<div style="position:absolute;bottom:0;left:0;right:0;height:50%;display:flex;flex-direction:column;justify-content:space-between;padding:28px 56px 104px 56px;z-index:5">
   <div class="bod" style="font-size:36px;line-height:1.5">{{PROBLEM_BODY}}</div>
   <div class="trio" style="margin-top:0;padding-top:24px">
     <div class="tb"><div class="tn">{{STAT1_NUM}}</div><div class="tl">{{STAT1_LABEL}}</div></div>
@@ -225,31 +256,52 @@ body{margin:0;padding:0;background:#0a0a0a}
     <div class="tb"><div class="tn">{{STAT3_NUM}}</div><div class="tl">{{STAT3_LABEL}}</div></div>
   </div>
 </div>
+<div class="ch-label">02 · THE CLAIM</div>
+<div class="chr-bc">SPORT. DECODED.</div>
 <div class="sc">02 / 10</div>
 </div>
 
-<!-- S3: ZONE BREAKDOWN -->
+<!-- S3: THE DUEL -->
 <div class="slide {{S3_ACTIVE}}" id="s3">
-<div style="position:absolute;left:0;top:0;bottom:0;width:10px;background:#AAFF00"></div>
-<div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:420px;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-16px;pointer-events:none;padding:0 16px 16px 0;line-height:1">{{ZONE4_PCT}}</div>
-<div class="bug" style="left:76px">SPORT. DECODED.</div>
-<div class="inner" style="padding-left:76px;overflow:hidden;justify-content:center">
-  <div class="sec">Chance creation by zone</div>
-  <div class="ttl" style="font-size:88px;margin-bottom:28px">{{ZONE_TITLE}}</div>
-  <div class="br"><div class="bh"><div class="bz">{{ZONE1_LABEL}}</div><div class="bp">{{ZONE1_PCT}}</div></div><div class="bt"><div class="bf" style="width:{{ZONE1_WIDTH}}%"></div></div></div>
-  <div class="br"><div class="bh"><div class="bz">{{ZONE2_LABEL}}</div><div class="bp">{{ZONE2_PCT}}</div></div><div class="bt"><div class="bf" style="width:{{ZONE2_WIDTH}}%"></div></div></div>
-  <div class="br"><div class="bh"><div class="bz">{{ZONE3_LABEL}}</div><div class="bp">{{ZONE3_PCT}}</div></div><div class="bt"><div class="bf" style="width:{{ZONE3_WIDTH}}%"></div></div></div>
-  <div class="br" style="margin-bottom:24px"><div class="bh"><div class="bz">{{ZONE4_LABEL}}</div><div class="bp v">{{ZONE4_PCT}}</div></div><div class="bt"><div class="bf hi" style="width:{{ZONE4_WIDTH}}%"></div></div></div>
-  <div class="bn">{{ZONE_NOTE}}</div>
+<div style="position:absolute;left:0;top:0;bottom:0;width:50%;background:linear-gradient(to right,{{DUEL_HOME_COLOR}} 0%,transparent 85%);opacity:0.14;z-index:1"></div>
+<div style="position:absolute;right:0;top:0;bottom:0;width:50%;background:linear-gradient(to left,{{DUEL_AWAY_COLOR}} 0%,transparent 85%);opacity:0.14;z-index:1"></div>
+<div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
+<div class="chr-tl">THIRD RAIL SPORTS</div>
+<div class="chr-tc">{{CONTEXT_LINE}}</div>
+<div class="chr-tr">{{LEAGUE_BADGE}}</div>
+<div class="duel-face home">
+  {{DUEL_HOME_PHOTO_HTML}}
+  <div class="duel-tint home"></div>
+  <div class="duel-fade"></div>
+  <div class="duel-name"><div class="dn">{{DUEL_HOME_NAME}}</div><div class="dm">{{DUEL_HOME_META}}</div></div>
 </div>
+<div class="duel-face away">
+  {{DUEL_AWAY_PHOTO_HTML}}
+  <div class="duel-tint away"></div>
+  <div class="duel-fade"></div>
+  <div class="duel-name"><div class="dn">{{DUEL_AWAY_NAME}}</div><div class="dm">{{DUEL_AWAY_META}}</div></div>
+</div>
+<div class="duel-vs">VS</div>
+<div class="duel-stats">
+  <div class="dl-row"><div class="dl-val h {{D1_HOME_HI}}">{{D1_HOME}}</div><div class="dl-mid"><div class="dl-track"><div class="dl-fill h {{D1_HOME_HI}}" style="width:{{D1_HOME_W}}%"></div></div><div class="dl-lab">{{D1_LABEL}}</div><div class="dl-track"><div class="dl-fill a {{D1_AWAY_HI}}" style="width:{{D1_AWAY_W}}%"></div></div></div><div class="dl-val a {{D1_AWAY_HI}}">{{D1_AWAY}}</div></div>
+  <div class="dl-row"><div class="dl-val h {{D2_HOME_HI}}">{{D2_HOME}}</div><div class="dl-mid"><div class="dl-track"><div class="dl-fill h {{D2_HOME_HI}}" style="width:{{D2_HOME_W}}%"></div></div><div class="dl-lab">{{D2_LABEL}}</div><div class="dl-track"><div class="dl-fill a {{D2_AWAY_HI}}" style="width:{{D2_AWAY_W}}%"></div></div></div><div class="dl-val a {{D2_AWAY_HI}}">{{D2_AWAY}}</div></div>
+  <div class="dl-row"><div class="dl-val h {{D3_HOME_HI}}">{{D3_HOME}}</div><div class="dl-mid"><div class="dl-track"><div class="dl-fill h {{D3_HOME_HI}}" style="width:{{D3_HOME_W}}%"></div></div><div class="dl-lab">{{D3_LABEL}}</div><div class="dl-track"><div class="dl-fill a {{D3_AWAY_HI}}" style="width:{{D3_AWAY_W}}%"></div></div></div><div class="dl-val a {{D3_AWAY_HI}}">{{D3_AWAY}}</div></div>
+  <div class="dl-row last"><div class="dl-val h {{D4_HOME_HI}}">{{D4_HOME}}</div><div class="dl-mid"><div class="dl-track"><div class="dl-fill h {{D4_HOME_HI}}" style="width:{{D4_HOME_W}}%"></div></div><div class="dl-lab">{{D4_LABEL}}</div><div class="dl-track"><div class="dl-fill a {{D4_AWAY_HI}}" style="width:{{D4_AWAY_W}}%"></div></div></div><div class="dl-val a {{D4_AWAY_HI}}">{{D4_AWAY}}</div></div>
+</div>
+<div class="duel-note">{{DUEL_NOTE}}</div>
+<div class="ch-label">03 · THE DUEL</div>
+<div class="chr-bc">SPORT. DECODED.</div>
 <div class="sc">03 / 10</div>
 </div>
 
-<!-- S4: RESULTS -->
+<!-- S4: THE RUN -->
 <div class="slide {{S4_ACTIVE}}" id="s4">
 <div style="position:absolute;right:0;top:0;bottom:0;width:46%;background:{{TEAM_COLOR}};opacity:0.25;z-index:1"></div>
 <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:380px;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-16px;pointer-events:none;padding:0 16px 16px 0;line-height:1;z-index:2">{{FORM_GHOST}}</div>
-<div class="bug" style="z-index:20">SPORT. DECODED.</div>
+<div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
+<div class="chr-tl">THIRD RAIL SPORTS</div>
+<div class="chr-tc">{{CONTEXT_LINE}}</div>
+<div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="inner" style="justify-content:center;z-index:5">
   <div class="sec">{{RESULT_SECTION}}</div>
   <div class="ttl" style="font-size:88px;margin-bottom:16px">{{RESULT_TITLE}}</div>
@@ -263,14 +315,19 @@ body{margin:0;padding:0;background:#0a0a0a}
     <div style="margin-left:12px;font-size:26px;color:#ffffff;font-weight:300;font-family:'Inter',sans-serif;line-height:1.4;flex:1">{{FORM_NOTE}}</div>
   </div>
 </div>
+<div class="ch-label">04 · THE RUN</div>
+<div class="chr-bc">SPORT. DECODED.</div>
 <div class="sc">04 / 10</div>
 </div>
 
-<!-- S5: EDITORIAL QUOTE -->
+<!-- S5: THE COUNTER -->
 <div class="slide {{S5_ACTIVE}}" id="s5">
 <div style="position:absolute;right:0;top:0;bottom:0;width:44%;background:linear-gradient(to left,{{TEAM_COLOR}} 0%,transparent 100%);opacity:0.16;z-index:1"></div>
 <div style="position:absolute;font-family:'Georgia',serif;font-size:720px;color:#AAFF00;opacity:0.04;right:-20px;bottom:-100px;pointer-events:none;line-height:1;z-index:2">&ldquo;</div>
-<div class="bug">SPORT. DECODED.</div>
+<div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
+<div class="chr-tl">THIRD RAIL SPORTS</div>
+<div class="chr-tc">{{CONTEXT_LINE}}</div>
+<div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="inner" style="justify-content:center">
   <div class="sec">TRS Analysis</div>
   <div style="width:88px;height:8px;background:#AAFF00;margin-bottom:32px"></div>
@@ -279,14 +336,19 @@ body{margin:0;padding:0;background:#0a0a0a}
   <div class="qr"></div>
   <div class="qf">{{QUOTE_FOOT}}</div>
 </div>
+<div class="ch-label">05 · THE COUNTER</div>
+<div class="chr-bc">SPORT. DECODED.</div>
 <div class="sc">05 / 10</div>
 </div>
 
-<!-- S6: FIXTURES -->
+<!-- S6: THE ROAD -->
 <div class="slide {{S6_ACTIVE}}" id="s6">
 <div style="position:absolute;right:0;top:0;bottom:0;width:40%;background:linear-gradient(to left,{{TEAM_COLOR}} 0%,transparent 100%);opacity:0.16;z-index:1"></div>
 <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:420px;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-16px;pointer-events:none;padding:0 16px 16px 0;line-height:1;z-index:2">ET</div>
-<div class="bug">SPORT. DECODED.</div>
+<div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
+<div class="chr-tl">THIRD RAIL SPORTS</div>
+<div class="chr-tc">{{CONTEXT_LINE}}</div>
+<div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="inner" style="justify-content:center">
   <div class="sec">{{FIX_SECTION}}</div>
   <div class="ttl" style="margin-bottom:16px">{{FIX_TITLE}}</div>
@@ -295,14 +357,19 @@ body{margin:0;padding:0;background:#0a0a0a}
   <div class="fr last"><div class="ft">{{FIX3_TIME}}</div><div class="fp"></div><div class="fm"><div class="fteam">{{FIX3_MATCH}}</div><div class="fven">{{FIX3_VENUE}}</div></div></div>
   <div class="ffoot">{{FIX_FOOT}}</div>
 </div>
+<div class="ch-label">06 · THE ROAD</div>
+<div class="chr-bc">SPORT. DECODED.</div>
 <div class="sc">06 / 10</div>
 </div>
 
-<!-- S7: VERDICT -->
+<!-- S7: THE VERDICT -->
 <div class="slide {{S7_ACTIVE}}" id="s7">
 <div style="position:absolute;right:0;top:0;bottom:0;width:40%;background:linear-gradient(to left,{{TEAM_COLOR}} 0%,transparent 100%);opacity:0.18;z-index:1"></div>
 <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:720px;color:#AAFF00;opacity:0.04;right:-20px;bottom:-80px;letter-spacing:-20px;pointer-events:none;line-height:1;z-index:2">?</div>
-<div class="bug">SPORT. DECODED.</div>
+<div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
+<div class="chr-tl">THIRD RAIL SPORTS</div>
+<div class="chr-tc">{{CONTEXT_LINE}}</div>
+<div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="inner" style="justify-content:center">
   <div class="vh">{{VERDICT_L1}}<br>{{VERDICT_L2}}</div>
   <div class="vh-sub">{{VERDICT_L3}}</div>
@@ -311,47 +378,57 @@ body{margin:0;padding:0;background:#0a0a0a}
   <div class="pt p2"><div class="pn">2</div><div class="px"><strong>{{VERDICT_PT2_BOLD}}</strong> {{VERDICT_PT2_BODY}}</div></div>
   <div class="pt p3"><div class="pn">3</div><div class="px"><strong>{{VERDICT_PT3_BOLD}}</strong> {{VERDICT_PT3_BODY}}</div></div>
 </div>
+<div class="ch-label">07 · THE VERDICT</div>
+<div class="chr-bc">SPORT. DECODED.</div>
 <div class="sc">07 / 10</div>
 </div>
 
-<!-- S8: LEADERBOARD -->
+<!-- S8: THE BOOT -->
 <div class="slide {{S8_ACTIVE}}" id="s8">
 <div style="position:absolute;inset:0;background:#0a0a0a"></div>
-<div style="position:absolute;left:0;top:0;bottom:0;width:10px;background:#AAFF00"></div>
-<div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:540px;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-20px;pointer-events:none;padding:0 16px 16px 0;line-height:1">{{LB4_RANK}}</div>
-<div class="bug" style="left:76px">SPORT. DECODED.</div>
-<div class="pill">{{TEAM_FLAG}} {{TEAM_CODE}}</div>
-<div class="inner" style="padding-left:76px;overflow:hidden;justify-content:center">
-  <div class="sec">Tournament rankings</div>
-  <div class="ttl" style="font-size:72px;margin-bottom:4px;line-height:0.9">{{LB_TITLE}}</div>
-  <div style="font-size:20px;letter-spacing:6px;color:#AAFF00;text-transform:uppercase;margin-bottom:18px;font-weight:600;font-family:'Inter',sans-serif">{{LB_METRIC}}</div>
-  <div class="lb-row"><div class="lb-rank">{{LB1_RANK}}</div><div class="lb-team">{{LB1_TEAM}}</div><div class="lb-bar-wrap"><div class="lb-bar-t"><div class="lb-bar-f" style="width:{{LB1_WIDTH}}%"></div></div></div><div class="lb-val">{{LB1_VAL}}</div></div>
-  <div class="lb-row"><div class="lb-rank">{{LB2_RANK}}</div><div class="lb-team">{{LB2_TEAM}}</div><div class="lb-bar-wrap"><div class="lb-bar-t"><div class="lb-bar-f" style="width:{{LB2_WIDTH}}%"></div></div></div><div class="lb-val">{{LB2_VAL}}</div></div>
-  <div class="lb-row"><div class="lb-rank">{{LB3_RANK}}</div><div class="lb-team">{{LB3_TEAM}}</div><div class="lb-bar-wrap"><div class="lb-bar-t"><div class="lb-bar-f" style="width:{{LB3_WIDTH}}%"></div></div></div><div class="lb-val">{{LB3_VAL}}</div></div>
-  <div class="lb-row"><div class="lb-rank hi">{{LB4_RANK}}</div><div class="lb-team hi">{{LB4_TEAM}} ←</div><div class="lb-bar-wrap"><div class="lb-bar-t"><div class="lb-bar-f hi" style="width:{{LB4_WIDTH}}%"></div></div></div><div class="lb-val hi">{{LB4_VAL}}</div></div>
-  <div class="lb-row last"><div class="lb-rank">{{LB5_RANK}}</div><div class="lb-team">{{LB5_TEAM}}</div><div class="lb-bar-wrap"><div class="lb-bar-t"><div class="lb-bar-f" style="width:{{LB5_WIDTH}}%"></div></div></div><div class="lb-val">{{LB5_VAL}}</div></div>
-  <div class="lb-foot">{{LB_FOOT}}</div>
+<div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:540px;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-20px;pointer-events:none;padding:0 16px 16px 0;line-height:1">{{BOOT1_VAL}}</div>
+<div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div></div>
+<div class="chr-tl">THIRD RAIL SPORTS</div>
+<div class="chr-tc">{{CONTEXT_LINE}}</div>
+<div class="chr-tr">{{LEAGUE_BADGE}}</div>
+<div class="inner" style="justify-content:center">
+  <div class="sec">Golden Boot race</div>
+  <div class="ttl" style="font-size:72px;margin-bottom:4px;line-height:0.9">{{BOOT_TITLE}}</div>
+  <div style="font-size:20px;letter-spacing:6px;color:#AAFF00;text-transform:uppercase;margin-bottom:18px;font-weight:600;font-family:'Inter',sans-serif">{{BOOT_METRIC}}</div>
+  <div class="boot-row"><div class="boot-rank {{BOOT1_HI}}">{{BOOT1_RANK}}</div><div class="boot-chip {{BOOT1_HI}}">{{BOOT1_PHOTO_HTML}}</div><div class="boot-name {{BOOT1_HI}}">{{BOOT1_NAME}}</div><div class="boot-team">{{BOOT1_TEAM}}</div><div class="boot-bar-wrap"><div class="boot-bar-t"><div class="boot-bar-f {{BOOT1_HI}}" style="width:{{BOOT1_W}}%"></div></div></div><div class="boot-val {{BOOT1_HI}}">{{BOOT1_VAL}}</div></div>
+  <div class="boot-row"><div class="boot-rank {{BOOT2_HI}}">{{BOOT2_RANK}}</div><div class="boot-chip {{BOOT2_HI}}">{{BOOT2_PHOTO_HTML}}</div><div class="boot-name {{BOOT2_HI}}">{{BOOT2_NAME}}</div><div class="boot-team">{{BOOT2_TEAM}}</div><div class="boot-bar-wrap"><div class="boot-bar-t"><div class="boot-bar-f {{BOOT2_HI}}" style="width:{{BOOT2_W}}%"></div></div></div><div class="boot-val {{BOOT2_HI}}">{{BOOT2_VAL}}</div></div>
+  <div class="boot-row"><div class="boot-rank {{BOOT3_HI}}">{{BOOT3_RANK}}</div><div class="boot-chip {{BOOT3_HI}}">{{BOOT3_PHOTO_HTML}}</div><div class="boot-name {{BOOT3_HI}}">{{BOOT3_NAME}}</div><div class="boot-team">{{BOOT3_TEAM}}</div><div class="boot-bar-wrap"><div class="boot-bar-t"><div class="boot-bar-f {{BOOT3_HI}}" style="width:{{BOOT3_W}}%"></div></div></div><div class="boot-val {{BOOT3_HI}}">{{BOOT3_VAL}}</div></div>
+  <div class="boot-row"><div class="boot-rank {{BOOT4_HI}}">{{BOOT4_RANK}}</div><div class="boot-chip {{BOOT4_HI}}">{{BOOT4_PHOTO_HTML}}</div><div class="boot-name {{BOOT4_HI}}">{{BOOT4_NAME}}</div><div class="boot-team">{{BOOT4_TEAM}}</div><div class="boot-bar-wrap"><div class="boot-bar-t"><div class="boot-bar-f {{BOOT4_HI}}" style="width:{{BOOT4_W}}%"></div></div></div><div class="boot-val {{BOOT4_HI}}">{{BOOT4_VAL}}</div></div>
+  <div class="boot-row last"><div class="boot-rank {{BOOT5_HI}}">{{BOOT5_RANK}}</div><div class="boot-chip {{BOOT5_HI}}">{{BOOT5_PHOTO_HTML}}</div><div class="boot-name {{BOOT5_HI}}">{{BOOT5_NAME}}</div><div class="boot-team">{{BOOT5_TEAM}}</div><div class="boot-bar-wrap"><div class="boot-bar-t"><div class="boot-bar-f {{BOOT5_HI}}" style="width:{{BOOT5_W}}%"></div></div></div><div class="boot-val {{BOOT5_HI}}">{{BOOT5_VAL}}</div></div>
+  <div class="boot-foot">{{BOOT_FOOT}}</div>
 </div>
+<div class="ch-label">08 · THE BOOT</div>
+<div class="chr-bc">SPORT. DECODED.</div>
 <div class="sc">08 / 10</div>
 </div>
 
-<!-- S9: DECISIVE STAT -->
+<!-- S9: THE NUMBER -->
 <div class="slide {{S9_ACTIVE}}" id="s9">
 <div style="position:absolute;inset:0;background:#0a0a0a"></div>
 <div class="ds-ghost">{{DS_NUM}}</div>
-<div class="bug">SPORT. DECODED.</div>
-<div class="pill">{{TEAM_FLAG}} {{TEAM_CODE}}</div>
+<div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div></div>
+<div class="chr-tl">THIRD RAIL SPORTS</div>
+<div class="chr-tc">{{CONTEXT_LINE}}</div>
+<div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="ds-inner">
   <div class="ds-label">{{DS_LABEL}}</div>
   <div class="ds-num">{{DS_NUM}}<span class="ds-unit">{{DS_UNIT_L1}}<br>{{DS_UNIT_L2}}</span></div>
   <div class="ds-bar"></div>
   <div class="ds-body">{{DS_BODY}}</div>
 </div>
+<div class="ch-label">09 · THE NUMBER</div>
+<div class="chr-bc">SPORT. DECODED.</div>
 <div class="sc">09 / 10</div>
 </div>
 
 <!-- S10: SIGN-OFF -->
 <div class="slide {{S10_ACTIVE}}" id="s10">
+<div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div></div>
 <div class="so-wrap">
   <div class="so-ghost">TRS</div>
   <div class="so-content">
@@ -365,6 +442,7 @@ body{margin:0;padding:0;background:#0a0a0a}
     <div class="platform-row">{{PLATFORM_ROW}}</div>
   </div>
 </div>
+<div class="ch-label">10 · SIGN-OFF</div>
 <div class="sc" style="color:rgba(170,255,0,0.12)">10 / 10</div>
 </div>
 
