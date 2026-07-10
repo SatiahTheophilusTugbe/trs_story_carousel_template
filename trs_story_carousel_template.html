@@ -1,30 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <!--
-TRS STORY CAROUSEL TEMPLATE v3 -- "THE DOSSIER"
+TRS STORY CAROUSEL TEMPLATE v4 -- "THE DOSSIER"
 Repo: trs_story_carousel_template. Render loop cache-busts with Date.now().
 
-v3 changes (Jul 9 render-feedback pass, FRA-MAR reference render):
-- CHROME ANCHORING: top chrome 44->34px, footer labels 42->32px, counter 36->26px.
-  Header and footer now sit properly at the edges.
-- S1: context line REMOVED from top-center; renders as a document title inside the
-  content zone (crest + FRA - MATCHDAY DOSSIER - date), top chrome is TRS + league
-  badge only. Headspace tightened, eyebrow-to-hero gap closed.
-- S1 PHOTO BLEED: overlay-fade replaced with a CSS mask on the frame -- photo now
-  dissolves to TRANSPARENT (background-agnostic) instead of fading to near-black
-  over a colored background. Slides 2-10 keep top-center context line.
-- S3 DUEL: stat block raised (top 596px), row padding/value sizes reduced, note
-  pinned lower and smaller -- possession row / note collision cleared.
-- S6 ROAD: fixture rows carry FIXn_HIDDEN class hooks; empty rows now collapse
-  (display:none) instead of rendering skeletons. Node must supply FIX1/2/3_HIDDEN.
-- S7 VERDICT: headline reduced 88->78px, breathing room added between headline,
-  sub-question, verdict label, and the three points.
-- S8 BOOT: chips 78->92px, leader chip renders FULL COLOR w/ volt ring while the
-  field stays duotone (grayscale softened 100->35%), title/metric spacing opened.
-- S9 NUMBER: opponent counter-value block added right of the hero number
-  (DS_OPP_VAL + DS_OPP_CODE, computed) -- fills the dead right space with data.
-- S10: platform handles moved out of content into the footer row, centered between
-  the chapter label (left) and slide counter (right).
+v4 changes (Jul 10 render-two feedback, FRA-MAR reference):
+- CONTEXT LINE: slide 1 ONLY. Centered document title directly below the
+  eyebrow chrome row, with breathing room. Removed from slides 2-9 entirely
+  (top chrome on 2-9 is now TRS left + league badge right).
+- S1 HERO PHOTO: circular 320px portrait, volt ring, fixed in the right dead
+  space -- deterministic placement, no text collision possible at any copy length.
+- S3 CREST FALLBACK: template accepts DUEL_HOME/AWAY_TINT_HIDDEN from the node.
+  When a crest is served instead of a player photo, the team-color tint is
+  dropped so the crest renders clean (no color-on-color mud). Requires
+  Build Dossier Data v2.4.
+- S9: opponent counter-value made a permanent architectural element -- left
+  divider rule, opponent code as label above the value, brightness raised.
+- S10: platform handles brightened (volt 0.35 -> 0.85).
 DOCTRINE: every numeric/score/width/color/time placeholder is computed by code.
 Claude supplies editorial copy only.
 -->
@@ -49,13 +41,15 @@ body{margin:0;padding:0;background:#0a0a0a}
 .slide{position:absolute;inset:0;display:none;flex-direction:column}
 .slide.active{display:flex}
 
-/* ============ GLOBAL CHROME v3 -- anchored ============ */
+/* ============ GLOBAL CHROME v4 ============ */
 .chr-tl{position:absolute;top:34px;left:44px;z-index:20;font-family:'Bebas Neue',sans-serif;font-size:27px;letter-spacing:7px;color:#AAFF00;line-height:1}
-.chr-tc{position:absolute;top:39px;left:50%;transform:translateX(-50%);z-index:20;font-size:17px;letter-spacing:4px;color:rgba(255,255,255,0.6);text-transform:uppercase;font-weight:500;white-space:nowrap;font-family:'Inter',sans-serif}
 .chr-tr{position:absolute;top:39px;right:44px;z-index:20;font-size:17px;letter-spacing:4px;color:rgba(170,255,0,0.55);text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif}
 .chr-bc{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:20;font-size:16px;letter-spacing:8px;color:rgba(170,255,0,0.35);text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif}
 .ch-label{position:absolute;bottom:32px;left:44px;z-index:20;font-size:16px;letter-spacing:4px;color:rgba(170,255,0,0.65);text-transform:uppercase;font-weight:700;font-family:'Inter',sans-serif}
 .sc{position:absolute;bottom:26px;right:44px;font-family:'Bebas Neue',sans-serif;font-size:40px;color:rgba(170,255,0,0.18);letter-spacing:4px;z-index:20;line-height:1}
+
+/* S1 DOCUMENT TITLE -- centered below the eyebrow row, slide 1 only */
+.doc-title{position:absolute;top:104px;left:0;right:0;text-align:center;z-index:20;font-size:24px;letter-spacing:6px;color:rgba(255,255,255,0.9);text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif}
 
 /* CHAPTER RAIL -- signature element */
 .rail{position:absolute;left:0;top:0;bottom:0;width:6px;display:flex;flex-direction:column;gap:5px;z-index:30}
@@ -69,18 +63,13 @@ body{margin:0;padding:0;background:#0a0a0a}
 .bod{font-size:40px;color:#fff;line-height:1.5;font-weight:300;font-family:'Inter',sans-serif}
 .vbar{width:96px;height:8px;background:#AAFF00;margin:28px 0}
 
-/* S1 DOCUMENT TITLE -- context line as title, slide 1 only */
-.doc-title{font-size:26px;letter-spacing:6px;color:rgba(255,255,255,0.88);text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif;margin-bottom:44px}
-
-/* HERO PHOTO -- mask bleed (fades to transparent, background-agnostic) */
-.hero-photo-frame{position:absolute;right:0;bottom:0;width:460px;height:660px;overflow:hidden;z-index:2;
-  -webkit-mask-image:linear-gradient(118deg,transparent 4%,rgba(0,0,0,0.5) 36%,#000 64%);
-  mask-image:linear-gradient(118deg,transparent 4%,rgba(0,0,0,0.5) 36%,#000 64%)}
-.hero-photo{width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(100%) contrast(1.15);opacity:0.72;display:block}
-.hero-photo-tint{position:absolute;inset:0;background:{{TEAM_COLOR}};mix-blend-mode:color;opacity:0.8}
+/* S1 HERO PHOTO -- circular portrait, right dead space, collision-proof */
+.hero-circle{position:absolute;right:64px;top:322px;width:320px;height:320px;border-radius:50%;overflow:hidden;border:3px solid rgba(170,255,0,0.3);z-index:2;background:rgba(10,10,10,0.35)}
+.hero-photo{width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(100%) contrast(1.15);opacity:0.85;display:block}
+.hero-photo-tint{position:absolute;inset:0;background:{{TEAM_COLOR}};mix-blend-mode:color;opacity:0.75}
 
 /* PLATFORM ROW -- footer element, Slide 10 */
-.platform-row{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:20;font-size:18px;letter-spacing:8px;color:rgba(170,255,0,0.35);text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif;white-space:nowrap}
+.platform-row{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:20;font-size:18px;letter-spacing:8px;color:rgba(170,255,0,0.85);text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif;white-space:nowrap}
 
 /* STAT TRIO */
 .trio{display:flex;margin-top:36px;padding-top:36px;border-top:1px solid #222}
@@ -97,6 +86,7 @@ body{margin:0;padding:0;background:#0a0a0a}
 .duel-tint{position:absolute;inset:0;mix-blend-mode:color;opacity:0.75}
 .duel-tint.home{background:{{DUEL_HOME_COLOR}}}
 .duel-tint.away{background:{{DUEL_AWAY_COLOR}}}
+.duel-tint.hide{display:none}
 .duel-fade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,0.15) 0%,rgba(10,10,10,0) 30%,rgba(10,10,10,0.2) 68%,rgba(10,10,10,0.97) 100%)}
 .duel-name{position:absolute;bottom:14px;left:0;right:0;text-align:center;z-index:4}
 .duel-name .dn{font-family:'Bebas Neue',sans-serif;font-size:44px;color:#fff;letter-spacing:2px;line-height:1}
@@ -149,7 +139,7 @@ body{margin:0;padding:0;background:#0a0a0a}
 .flive{font-size:18px;letter-spacing:4px;background:#AAFF00;color:#0a0a0a;padding:8px 16px;border-radius:4px;font-weight:700;flex-shrink:0;font-family:'Inter',sans-serif}
 .ffoot{font-size:28px;color:#fff;font-weight:300;margin-top:20px;padding-top:24px;border-top:1px solid #141414;line-height:1.5;font-family:'Inter',sans-serif}
 
-/* VERDICT (S7) -- opened up */
+/* VERDICT (S7) */
 .vh{font-family:'Bebas Neue',sans-serif;font-size:78px;line-height:0.94;color:#fff;letter-spacing:-1px}
 .vh-sub{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:1;color:#AAFF00;letter-spacing:0px;margin-top:16px}
 .vsub{font-size:22px;color:#fff;letter-spacing:6px;text-transform:uppercase;margin:30px 0 34px;font-weight:500;font-family:'Inter',sans-serif}
@@ -165,7 +155,7 @@ body{margin:0;padding:0;background:#0a0a0a}
 .px{color:#fff;line-height:1.5;font-weight:300;font-family:'Inter',sans-serif}
 .px strong{font-weight:600;color:#fff}
 
-/* ============ S8: THE BOOT -- spruced ============ */
+/* ============ S8: THE BOOT ============ */
 .boot-sec{font-size:24px;letter-spacing:8px;color:#AAFF00;text-transform:uppercase;margin-bottom:24px;font-weight:600;font-family:'Inter',sans-serif}
 .boot-ttl{font-family:'Bebas Neue',sans-serif;font-size:72px;margin-bottom:14px;line-height:0.92;color:#fff;letter-spacing:1px}
 .boot-metric{font-size:20px;letter-spacing:6px;color:#AAFF00;text-transform:uppercase;margin-bottom:30px;font-weight:600;font-family:'Inter',sans-serif}
@@ -188,16 +178,16 @@ body{margin:0;padding:0;background:#0a0a0a}
 .boot-val.hi{color:#AAFF00}
 .boot-foot{font-size:26px;color:#fff;margin-top:24px;padding-top:20px;border-top:1px solid #1c1c1c;font-weight:300;line-height:1.45;font-family:'Inter',sans-serif}
 
-/* DECISIVE STAT (S9) -- opponent counter-value fills right space */
+/* DECISIVE STAT (S9) -- opponent counter-value as permanent ledger element */
 .ds-ghost{position:absolute;font-family:'Bebas Neue',sans-serif;font-size:500px;line-height:1;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-20px;pointer-events:none;padding:0 16px 16px 0}
 .ds-inner{position:relative;z-index:5;flex:1;display:flex;flex-direction:column;justify-content:center;padding:118px 56px 108px;overflow:hidden}
 .ds-label{font-size:22px;letter-spacing:8px;color:#AAFF00;text-transform:uppercase;margin-bottom:36px;font-weight:600;font-family:'Inter',sans-serif}
 .ds-row{display:flex;align-items:flex-end;justify-content:space-between}
 .ds-num{font-family:'Bebas Neue',sans-serif;font-size:300px;line-height:0.82;color:#AAFF00;letter-spacing:-12px}
 .ds-unit{font-family:'Bebas Neue',sans-serif;font-size:72px;color:#fff;display:block;margin-top:16px;letter-spacing:2px;line-height:1}
-.ds-opp{text-align:right;padding-bottom:12px}
-.ds-opp-val{font-family:'Bebas Neue',sans-serif;font-size:110px;color:rgba(255,255,255,0.3);line-height:0.9;letter-spacing:-2px}
-.ds-opp-code{font-size:20px;letter-spacing:6px;color:rgba(255,255,255,0.35);text-transform:uppercase;font-weight:600;margin-top:10px;font-family:'Inter',sans-serif}
+.ds-opp{text-align:right;padding:0 0 16px 44px;border-left:1px solid #242424;margin-bottom:8px}
+.ds-opp-code{font-size:20px;letter-spacing:6px;color:rgba(255,255,255,0.5);text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif}
+.ds-opp-val{font-family:'Bebas Neue',sans-serif;font-size:120px;color:rgba(255,255,255,0.45);line-height:0.9;letter-spacing:-2px;margin-top:12px}
 .ds-bar{width:100%;height:4px;background:#1c1c1c;border-radius:2px;margin:40px 0}
 .ds-body{font-size:34px;color:#fff;line-height:1.6;font-weight:300;font-family:'Inter',sans-serif}
 .ds-body em{color:#AAFF00;font-style:normal;font-weight:600}
@@ -230,15 +220,15 @@ body{margin:0;padding:0;background:#0a0a0a}
 <div style="position:absolute;inset:0;background:{{TEAM_COLOR_MID}};clip-path:polygon(62% 0%,100% 0%,100% 100%,38% 100%)"></div>
 <div style="position:absolute;inset:0;background:linear-gradient(150deg,rgba(0,0,0,0.0) 0%,rgba(0,0,0,0.5) 45%,rgba(0,0,0,0.97) 100%)"></div>
 <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:540px;line-height:1;color:#fff;opacity:0.05;right:0;bottom:0;letter-spacing:-20px;pointer-events:none;padding:0 18px 18px 0">{{HERO_STAT}}</div>
-<div class="hero-photo-frame">
+<div class="hero-circle">
   {{HERO_PHOTO_HTML}}
   <div class="hero-photo-tint"></div>
 </div>
 <div class="rail"><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
 <div class="chr-tl">THIRD RAIL SPORTS</div>
 <div class="chr-tr">{{LEAGUE_BADGE}}</div>
-<div class="inner" style="justify-content:center;padding-top:100px">
-  <div class="doc-title">{{CONTEXT_LINE}}</div>
+<div class="doc-title">{{CONTEXT_LINE}}</div>
+<div class="inner" style="justify-content:center;padding-top:190px">
   <div style="font-size:24px;letter-spacing:8px;color:#fff;text-transform:uppercase;margin-bottom:18px;font-weight:400;font-family:'Inter',sans-serif">{{EYEBROW}}</div>
   <div style="font-family:'Bebas Neue',sans-serif;font-size:280px;line-height:0.82;color:#AAFF00;letter-spacing:-8px">{{HERO_STAT}}<span style="font-family:'Bebas Neue',sans-serif;font-size:96px;color:#fff;letter-spacing:2px;display:block;margin-top:18px;line-height:1">{{HERO_UNIT}}</span></div>
   <div class="vbar"></div>
@@ -257,7 +247,6 @@ body{margin:0;padding:0;background:#0a0a0a}
 <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:420px;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-16px;pointer-events:none;padding:0 16px 16px 0;line-height:1">{{TEAM_CODE}}</div>
 <div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
 <div class="chr-tl">THIRD RAIL SPORTS</div>
-<div class="chr-tc">{{CONTEXT_LINE}}</div>
 <div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div style="position:absolute;top:0;left:0;right:0;height:50%;display:flex;flex-direction:column;justify-content:flex-end;padding:0 56px 28px 56px;z-index:5">
   <div class="sec">{{PROBLEM_LABEL}}</div>
@@ -282,17 +271,16 @@ body{margin:0;padding:0;background:#0a0a0a}
 <div style="position:absolute;right:0;top:0;bottom:0;width:50%;background:linear-gradient(to left,{{DUEL_AWAY_COLOR}} 0%,transparent 85%);opacity:0.14;z-index:1"></div>
 <div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
 <div class="chr-tl">THIRD RAIL SPORTS</div>
-<div class="chr-tc">{{CONTEXT_LINE}}</div>
 <div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="duel-face home">
   {{DUEL_HOME_PHOTO_HTML}}
-  <div class="duel-tint home"></div>
+  <div class="duel-tint home {{DUEL_HOME_TINT_HIDDEN}}"></div>
   <div class="duel-fade"></div>
   <div class="duel-name"><div class="dn">{{DUEL_HOME_NAME}}</div><div class="dm">{{DUEL_HOME_META}}</div></div>
 </div>
 <div class="duel-face away">
   {{DUEL_AWAY_PHOTO_HTML}}
-  <div class="duel-tint away"></div>
+  <div class="duel-tint away {{DUEL_AWAY_TINT_HIDDEN}}"></div>
   <div class="duel-fade"></div>
   <div class="duel-name"><div class="dn">{{DUEL_AWAY_NAME}}</div><div class="dm">{{DUEL_AWAY_META}}</div></div>
 </div>
@@ -315,7 +303,6 @@ body{margin:0;padding:0;background:#0a0a0a}
 <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:380px;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-16px;pointer-events:none;padding:0 16px 16px 0;line-height:1;z-index:2">{{FORM_GHOST}}</div>
 <div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
 <div class="chr-tl">THIRD RAIL SPORTS</div>
-<div class="chr-tc">{{CONTEXT_LINE}}</div>
 <div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="inner" style="justify-content:center;z-index:5">
   <div class="sec">{{RESULT_SECTION}}</div>
@@ -341,7 +328,6 @@ body{margin:0;padding:0;background:#0a0a0a}
 <div style="position:absolute;font-family:'Georgia',serif;font-size:720px;color:#AAFF00;opacity:0.04;right:-20px;bottom:-100px;pointer-events:none;line-height:1;z-index:2">&ldquo;</div>
 <div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
 <div class="chr-tl">THIRD RAIL SPORTS</div>
-<div class="chr-tc">{{CONTEXT_LINE}}</div>
 <div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="inner" style="justify-content:center">
   <div class="sec">TRS Analysis</div>
@@ -362,7 +348,6 @@ body{margin:0;padding:0;background:#0a0a0a}
 <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:420px;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-16px;pointer-events:none;padding:0 16px 16px 0;line-height:1;z-index:2">ET</div>
 <div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
 <div class="chr-tl">THIRD RAIL SPORTS</div>
-<div class="chr-tc">{{CONTEXT_LINE}}</div>
 <div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="inner" style="justify-content:center">
   <div class="sec">{{FIX_SECTION}}</div>
@@ -383,7 +368,6 @@ body{margin:0;padding:0;background:#0a0a0a}
 <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:720px;color:#AAFF00;opacity:0.04;right:-20px;bottom:-80px;letter-spacing:-20px;pointer-events:none;line-height:1;z-index:2">?</div>
 <div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div><div class="rs"></div></div>
 <div class="chr-tl">THIRD RAIL SPORTS</div>
-<div class="chr-tc">{{CONTEXT_LINE}}</div>
 <div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="inner" style="justify-content:center">
   <div class="vh">{{VERDICT_L1}}<br>{{VERDICT_L2}}</div>
@@ -404,7 +388,6 @@ body{margin:0;padding:0;background:#0a0a0a}
 <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:540px;color:#AAFF00;opacity:0.04;right:0;bottom:0;letter-spacing:-20px;pointer-events:none;padding:0 16px 16px 0;line-height:1">{{BOOT1_VAL}}</div>
 <div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div><div class="rs"></div></div>
 <div class="chr-tl">THIRD RAIL SPORTS</div>
-<div class="chr-tc">{{CONTEXT_LINE}}</div>
 <div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="inner" style="justify-content:center">
   <div class="boot-sec">Golden Boot race</div>
@@ -428,13 +411,12 @@ body{margin:0;padding:0;background:#0a0a0a}
 <div class="ds-ghost">{{DS_NUM}}</div>
 <div class="rail"><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs on"></div><div class="rs"></div></div>
 <div class="chr-tl">THIRD RAIL SPORTS</div>
-<div class="chr-tc">{{CONTEXT_LINE}}</div>
 <div class="chr-tr">{{LEAGUE_BADGE}}</div>
 <div class="ds-inner">
   <div class="ds-label">{{DS_LABEL}}</div>
   <div class="ds-row">
     <div class="ds-num">{{DS_NUM}}<span class="ds-unit">{{DS_UNIT_L1}}<br>{{DS_UNIT_L2}}</span></div>
-    <div class="ds-opp"><div class="ds-opp-val">{{DS_OPP_VAL}}</div><div class="ds-opp-code">{{DS_OPP_CODE}}</div></div>
+    <div class="ds-opp"><div class="ds-opp-code">{{DS_OPP_CODE}}</div><div class="ds-opp-val">{{DS_OPP_VAL}}</div></div>
   </div>
   <div class="ds-bar"></div>
   <div class="ds-body">{{DS_BODY}}</div>
