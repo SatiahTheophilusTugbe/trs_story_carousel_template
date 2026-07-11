@@ -1,8 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <!--
-TRS STORY CAROUSEL TEMPLATE v4 -- "THE DOSSIER"
+TRS STORY CAROUSEL TEMPLATE v6 -- "THE DOSSIER"
 Repo: trs_story_carousel_template. Render loop cache-busts with Date.now().
+
+v6 (Jul 11, same session): both hero-circle (S1) and duel-face (S3) grown 320→360px —
+render-verified with wkhtmltoimage + real Bebas Neue font (not estimated) before shipping.
+- S1: circle right:64→56/top:322→300 (recentered for the larger box). Real risk found and
+  fixed: HERO_STAT is a runtime-computed number with NO prior max-width guard — tested a wide
+  stress value ('16.4') at 400px and it visibly ran into the circle. 360px was the largest
+  diameter that stayed clear even under that stress case, AND a permanent max-width:560px
+  guard was added to the stat block so this is now safe under any future value, not just
+  the ones tested today.
+- CORRECTION (same session): initial duel-stats push to 620 was verified against a SHORT
+  placeholder note, not real copy. Re-tested against the actual 140-char production note
+  (the one from her real screenshot, 2-line wrap) and found only ~2px clearance — not
+  actually safe. Fixed: dl-row padding 10→8px (reclaims 8px across 4 rows), duel-stats
+  604 (not 620). Now ~34px clear above the note, ~30px clear above the footer, ~14px
+  clear below the caption (tighter than before but confirmed positive in render).
+- S3: circle anchors pulled 140→100px (360px circles need less inward pull than 320px did to
+  keep the VS gap comfortable). .duel-name repositioned 476→516 (below the taller circle) and
+  widened to match (320→360px). .duel-stats nudged 596→620 to preserve clearance under the
+  taller caption stack — verified against 'C. DE KETELAERE', the longest name seen this session.
+- Area math: 360px = 62% of the ORIGINAL 400x410 rectangle's footprint (vs 320px's 49%) —
+  meaningfully closer to the old presence while staying a clean circle on both slides.
+
+v5 (Jul 11): S3 Duel faces made circular -- was 400x410 rectangle, now 320px circle
+matching .hero-circle's family size. Photo opacity 0.75→0.92, tint 0.75→0.50 (was
+reading washed-out at small size). Added team-color ring border per side. .duel-name
+restructured from an overlay nested inside .duel-face (bottom:14px, which a CIRCLE's
+curve would clip) to a sibling positioned below the circle — standard avatar+caption
+pattern. Vertical math: face 140→460, name 476→~550, duel-vs unaffected (still 290,
+independently positioned), duel-stats untouched at 596 (~46px clearance preserved).
 
 v4 changes (Jul 10 render-two feedback, FRA-MAR reference):
 - CONTEXT LINE: slide 1 ONLY. Centered document title directly below the
@@ -64,7 +93,7 @@ body{margin:0;padding:0;background:#0a0a0a}
 .vbar{width:96px;height:8px;background:#AAFF00;margin:28px 0}
 
 /* S1 HERO PHOTO -- circular portrait, right dead space, collision-proof */
-.hero-circle{position:absolute;right:64px;top:322px;width:320px;height:320px;border-radius:50%;overflow:hidden;border:3px solid rgba(170,255,0,0.3);z-index:2;background:rgba(10,10,10,0.35)}
+.hero-circle{position:absolute;right:56px;top:300px;width:360px;height:360px;border-radius:50%;overflow:hidden;border:3px solid rgba(170,255,0,0.3);z-index:2;background:rgba(10,10,10,0.35)}
 .hero-photo{width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(100%) contrast(1.15);opacity:0.85;display:block}
 .hero-photo-tint{position:absolute;inset:0;background:{{TEAM_COLOR}};mix-blend-mode:color;opacity:0.75}
 
@@ -79,21 +108,29 @@ body{margin:0;padding:0;background:#0a0a0a}
 .tl{font-size:20px;color:#fff;letter-spacing:4px;text-transform:uppercase;margin-top:8px;font-weight:500;font-family:'Inter',sans-serif}
 
 /* ============ S3: THE DUEL ============ */
-.duel-face{position:absolute;top:140px;width:400px;height:410px;overflow:hidden;z-index:3}
-.duel-face.home{left:70px}
-.duel-face.away{right:70px}
-.duel-face img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(100%) contrast(1.15);opacity:0.75;display:block}
-.duel-tint{position:absolute;inset:0;mix-blend-mode:color;opacity:0.75}
+/* Circular — matches .hero-circle's 320px family size for cross-slide consistency.
+   Photo opacity 0.75→0.92 + tint 0.75→0.50: was reading washed-out/murky at small
+   size; grayscale+contrast treatment kept (matches hero-photo's language), just lighter.
+   Team-color ring reinforces which face is which side now that the tint wash is lighter.
+   .duel-name MOVED from inside .duel-face (bottom:14px) to a sibling below it — text that
+   close to a CIRCLE's bottom edge gets clipped by the curve; a rectangle had no such limit. */
+.duel-face{position:absolute;top:140px;width:360px;height:360px;border-radius:50%;overflow:hidden;z-index:3}
+.duel-face.home{left:100px;border:4px solid {{DUEL_HOME_COLOR}}}
+.duel-face.away{right:100px;border:4px solid {{DUEL_AWAY_COLOR}}}
+.duel-face img{width:100%;height:100%;object-fit:cover;object-position:top center;filter:grayscale(100%) contrast(1.15);opacity:0.92;display:block}
+.duel-tint{position:absolute;inset:0;mix-blend-mode:color;opacity:0.50}
 .duel-tint.home{background:{{DUEL_HOME_COLOR}}}
 .duel-tint.away{background:{{DUEL_AWAY_COLOR}}}
 .duel-tint.hide{display:none}
-.duel-fade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,0.15) 0%,rgba(10,10,10,0) 30%,rgba(10,10,10,0.2) 68%,rgba(10,10,10,0.97) 100%)}
-.duel-name{position:absolute;bottom:14px;left:0;right:0;text-align:center;z-index:4}
+.duel-fade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,0.1) 0%,rgba(10,10,10,0) 40%,rgba(10,10,10,0.15) 100%)}
+.duel-name{position:absolute;top:516px;width:360px;text-align:center;z-index:4}
+.duel-name.home{left:100px}
+.duel-name.away{right:100px}
 .duel-name .dn{font-family:'Bebas Neue',sans-serif;font-size:44px;color:#fff;letter-spacing:2px;line-height:1}
 .duel-name .dm{font-size:18px;letter-spacing:4px;color:#AAFF00;text-transform:uppercase;font-weight:600;margin-top:6px;font-family:'Inter',sans-serif}
 .duel-vs{position:absolute;top:290px;left:50%;transform:translateX(-50%);font-family:'Bebas Neue',sans-serif;font-size:110px;color:rgba(170,255,0,0.85);letter-spacing:2px;line-height:1;z-index:4}
-.duel-stats{position:absolute;left:56px;right:56px;top:596px;z-index:5}
-.dl-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #161616}
+.duel-stats{position:absolute;left:56px;right:56px;top:604px;z-index:5}
+.dl-row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #161616}
 .dl-row.last{border-bottom:none}
 .dl-val{font-family:'Bebas Neue',sans-serif;font-size:48px;color:rgba(255,255,255,0.55);width:124px;line-height:1}
 .dl-val.h{text-align:left}
@@ -230,7 +267,7 @@ body{margin:0;padding:0;background:#0a0a0a}
 <div class="doc-title">{{CONTEXT_LINE}}</div>
 <div class="inner" style="justify-content:center;padding-top:190px">
   <div style="font-size:24px;letter-spacing:8px;color:#fff;text-transform:uppercase;margin-bottom:18px;font-weight:400;font-family:'Inter',sans-serif">{{EYEBROW}}</div>
-  <div style="font-family:'Bebas Neue',sans-serif;font-size:280px;line-height:0.82;color:#AAFF00;letter-spacing:-8px">{{HERO_STAT}}<span style="font-family:'Bebas Neue',sans-serif;font-size:96px;color:#fff;letter-spacing:2px;display:block;margin-top:18px;line-height:1">{{HERO_UNIT}}</span></div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:280px;line-height:0.82;color:#AAFF00;letter-spacing:-8px;max-width:560px;overflow:hidden">{{HERO_STAT}}<span style="font-family:'Bebas Neue',sans-serif;font-size:96px;color:#fff;letter-spacing:2px;display:block;margin-top:18px;line-height:1">{{HERO_UNIT}}</span></div>
   <div class="vbar"></div>
   <div class="bod">{{HOOK_BODY}}</div>
 </div>
@@ -276,14 +313,14 @@ body{margin:0;padding:0;background:#0a0a0a}
   {{DUEL_HOME_PHOTO_HTML}}
   <div class="duel-tint home {{DUEL_HOME_TINT_HIDDEN}}"></div>
   <div class="duel-fade"></div>
-  <div class="duel-name"><div class="dn">{{DUEL_HOME_NAME}}</div><div class="dm">{{DUEL_HOME_META}}</div></div>
 </div>
+<div class="duel-name home"><div class="dn">{{DUEL_HOME_NAME}}</div><div class="dm">{{DUEL_HOME_META}}</div></div>
 <div class="duel-face away">
   {{DUEL_AWAY_PHOTO_HTML}}
   <div class="duel-tint away {{DUEL_AWAY_TINT_HIDDEN}}"></div>
   <div class="duel-fade"></div>
-  <div class="duel-name"><div class="dn">{{DUEL_AWAY_NAME}}</div><div class="dm">{{DUEL_AWAY_META}}</div></div>
 </div>
+<div class="duel-name away"><div class="dn">{{DUEL_AWAY_NAME}}</div><div class="dm">{{DUEL_AWAY_META}}</div></div>
 <div class="duel-vs">VS</div>
 <div class="duel-stats">
   <div class="dl-row"><div class="dl-val h {{D1_HOME_HI}}">{{D1_HOME}}</div><div class="dl-mid"><div class="dl-track"><div class="dl-fill h {{D1_HOME_HI}}" style="width:{{D1_HOME_W}}%"></div></div><div class="dl-lab">{{D1_LABEL}}</div><div class="dl-track"><div class="dl-fill a {{D1_AWAY_HI}}" style="width:{{D1_AWAY_W}}%"></div></div></div><div class="dl-val a {{D1_AWAY_HI}}">{{D1_AWAY}}</div></div>
